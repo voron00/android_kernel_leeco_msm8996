@@ -1,3 +1,14 @@
+ifeq ($(CONFIG_PRODUCT_LE_ZL1),y)
+dtb-$(CONFIG_ARCH_MSM8996) += \
+	msm8996-v3-pmi8996-le_zl1-evt.dtb \
+	msm8996-v3-pmi8996-le_zl1-dvt1.dtb \
+	msm8996pro-pmi8996-le_zl1-dvt1.dtb \
+	msm8996pro-pmi8996-le_zl1-na.dtb \
+	msm8996pro-pmi8996-le_zl1-pvt.dtb
+endif
+
+# Disable to reduze kernel size
+ifeq (true,false)
 dtb-$(CONFIG_ARCH_MSM8996) += msm8996-v2-pmi8994-mtp.dtb \
 	msm8996-v2-pmi8994-pmk8001-mtp.dtb \
 	msm8996-v2-pmi8994-pm8004-mtp.dtb \
@@ -119,6 +130,7 @@ dtb-$(CONFIG_ARCH_MSM8996) += msm8996-v2-pmi8994-mtp.dtb \
 	apq8096-v3-pmi8996-mdm9x55-i2s-mtp.dtb \
 	apq8096-v3-pmi8996-mdm9x55-slimbus-mtp.dtb \
 	apq8096-v3-pmi8996-dragonboard.dtb
+endif
 
 dtb-$(CONFIG_MSM_GVM_QUIN) += vplatform-lfv-msm8996.dtb
 

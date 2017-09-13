@@ -3025,6 +3025,17 @@ static int msm_dai_q6_mi2s_prepare(struct snd_pcm_substream *substream,
 		return -EINVAL;
 	}
 
+#ifdef CONFIG_SND_SOC_MAX98927
+	/* Redirect 24-bit to 32-bit width for MAX98927. */
+	if (AFE_PORT_ID_TERTIARY_MI2S_TX == port_id &&
+		dai_data->port_config.i2s.bit_width == 24)
+	{
+		dai_data->port_config.i2s.bit_width = 32;
+		pr_debug("%s: redirecting port_id 0x%x to %d bit width\n",
+			__func__, port_id, dai_data->port_config.i2s.bit_width);
+	}
+#endif
+
 	dev_dbg(dai->dev, "%s: dai id %d, afe port id = 0x%x\n"
 		"dai_data->channels = %u sample_rate = %u\n", __func__,
 		dai->id, port_id, dai_data->channels, dai_data->rate);
@@ -3346,22 +3357,38 @@ static struct snd_soc_dai_driver msm_dai_q6_mi2s_dai[] = {
 			.aif_name = "TERT_MI2S_RX",
 			.rates = SNDRV_PCM_RATE_48000 | SNDRV_PCM_RATE_8000 |
 			SNDRV_PCM_RATE_16000,
+#ifdef CONFIG_SND_SOC_MAX98927
+			.formats = (SNDRV_PCM_FMTBIT_S16_LE |
+				    SNDRV_PCM_FMTBIT_S24_LE |
+				    SNDRV_PCM_FMTBIT_S24_3LE |
+				    SNDRV_PCM_FMTBIT_S32_LE),
+#else
 			.formats = SNDRV_PCM_FMTBIT_S16_LE,
+#endif
 			.rate_min =     8000,
 			.rate_max =     48000,
 		},
 		.capture = {
 			.stream_name = "Tertiary MI2S Capture",
 			.aif_name = "TERT_MI2S_TX",
+#ifdef CONFIG_SND_SOC_MAX98927
+			.rates = SNDRV_PCM_RATE_48000 | SNDRV_PCM_RATE_8000 |
+			SNDRV_PCM_RATE_16000,
+#else
 			.rates = SNDRV_PCM_RATE_48000 | SNDRV_PCM_RATE_8000 |
 			SNDRV_PCM_RATE_16000 | SNDRV_PCM_RATE_96000 |
 			SNDRV_PCM_RATE_192000,
+#endif
 			.formats = (SNDRV_PCM_FMTBIT_S16_LE |
 				    SNDRV_PCM_FMTBIT_S24_LE |
 				    SNDRV_PCM_FMTBIT_S24_3LE |
 				    SNDRV_PCM_FMTBIT_S32_LE),
 			.rate_min =     8000,
+#ifdef CONFIG_SND_SOC_MAX98927
+			.rate_max =     48000,
+#else
 			.rate_max =     192000,
+#endif
 		},
 		.ops = &msm_dai_q6_mi2s_ops,
 		.id = MSM_TERT_MI2S,

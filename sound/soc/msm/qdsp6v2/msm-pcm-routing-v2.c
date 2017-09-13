@@ -47,6 +47,18 @@
 
 static int get_cal_path(int path_type);
 
+#ifdef CONFIG_VENDOR_LEECO
+#define INT_RX_VOL_MAX_STEPS 0x2000
+#define INT_RX_VOL_GAIN 0x2000
+static int msm_route_afe_pri_mi2s_vol_control = 0x2000;
+static int msm_route_afe_sec_mi2s_vol_control = 0x2000;
+static int msm_route_afe_tert_mi2s_vol_control = 0x2000;
+static int msm_route_afe_quat_mi2s_vol_control = 0x2000;
+
+static const DECLARE_TLV_DB_LINEAR(afe_mi2s_vol_gain, 0,
+                        INT_RX_VOL_MAX_STEPS);
+#endif
+
 static struct mutex routing_lock;
 
 static struct cal_type_data *cal_data;
@@ -2400,6 +2412,76 @@ static int msm_pcm_put_out_chs(struct snd_kcontrol *kcontrol,
 	return 1;
 }
 
+#ifdef CONFIG_VENDOR_LEECO
+static int msm_routing_get_afe_pri_mi2s_vol_mixer(struct snd_kcontrol *kcontrol,
+				struct snd_ctl_elem_value *ucontrol)
+{
+	ucontrol->value.integer.value[0] = msm_route_afe_pri_mi2s_vol_control;
+	return 0;
+}
+
+static int msm_routing_set_afe_pri_mi2s_vol_mixer(struct snd_kcontrol *kcontrol,
+				struct snd_ctl_elem_value *ucontrol)
+{
+	afe_loopback_gain(AFE_PORT_ID_PRIMARY_MI2S_RX, ucontrol->value.integer.value[0]);
+
+	msm_route_afe_pri_mi2s_vol_control = ucontrol->value.integer.value[0];
+
+	return 0;
+}
+
+static int msm_routing_get_afe_sec_mi2s_vol_mixer(struct snd_kcontrol *kcontrol,
+				struct snd_ctl_elem_value *ucontrol)
+{
+	ucontrol->value.integer.value[0] = msm_route_afe_sec_mi2s_vol_control;
+	return 0;
+}
+
+static int msm_routing_set_afe_sec_mi2s_vol_mixer(struct snd_kcontrol *kcontrol,
+				struct snd_ctl_elem_value *ucontrol)
+{
+	afe_loopback_gain(AFE_PORT_ID_SECONDARY_MI2S_RX, ucontrol->value.integer.value[0]);
+
+	msm_route_afe_sec_mi2s_vol_control = ucontrol->value.integer.value[0];
+
+	return 0;
+}
+
+static int msm_routing_get_afe_tert_mi2s_vol_mixer(struct snd_kcontrol *kcontrol,
+				struct snd_ctl_elem_value *ucontrol)
+{
+	ucontrol->value.integer.value[0] = msm_route_afe_tert_mi2s_vol_control;
+	return 0;
+}
+
+static int msm_routing_set_afe_tert_mi2s_vol_mixer(struct snd_kcontrol *kcontrol,
+				struct snd_ctl_elem_value *ucontrol)
+{
+	afe_loopback_gain(AFE_PORT_ID_TERTIARY_MI2S_RX, ucontrol->value.integer.value[0]);
+
+	msm_route_afe_tert_mi2s_vol_control = ucontrol->value.integer.value[0];
+
+	return 0;
+}
+
+static int msm_routing_get_afe_quat_mi2s_vol_mixer(struct snd_kcontrol *kcontrol,
+				struct snd_ctl_elem_value *ucontrol)
+{
+	ucontrol->value.integer.value[0] = msm_route_afe_quat_mi2s_vol_control;
+	return 0;
+}
+
+static int msm_routing_set_afe_quat_mi2s_vol_mixer(struct snd_kcontrol *kcontrol,
+				struct snd_ctl_elem_value *ucontrol)
+{
+	afe_loopback_gain(AFE_PORT_ID_QUATERNARY_MI2S_RX, ucontrol->value.integer.value[0]);
+
+	msm_route_afe_quat_mi2s_vol_control = ucontrol->value.integer.value[0];
+
+	return 0;
+}
+#endif
+
 static const char *const ch_mixer[] = {"Disable", "Enable"};
 
 /* If new backend is added, need update this array */
@@ -4093,6 +4175,12 @@ static const struct snd_kcontrol_new tertiary_mi2s_rx_mixer_controls[] = {
 	MSM_BACKEND_DAI_TERTIARY_MI2S_RX,
 	MSM_FRONTEND_DAI_MULTIMEDIA5, 1, 0, msm_routing_get_audio_mixer,
 	msm_routing_put_audio_mixer),
+#ifdef CONFIG_VENDOR_LEECO
+	SOC_DOUBLE_EXT("MultiMedia6", SND_SOC_NOPM,
+	MSM_BACKEND_DAI_TERTIARY_MI2S_RX,
+	MSM_FRONTEND_DAI_MULTIMEDIA6, 1, 0, msm_routing_get_audio_mixer,
+	msm_routing_put_audio_mixer),
+#endif
 	SOC_DOUBLE_EXT("MultiMedia7", SND_SOC_NOPM,
 	MSM_BACKEND_DAI_TERTIARY_MI2S_RX,
 	MSM_FRONTEND_DAI_MULTIMEDIA7, 1, 0, msm_routing_get_audio_mixer,
@@ -4101,6 +4189,12 @@ static const struct snd_kcontrol_new tertiary_mi2s_rx_mixer_controls[] = {
 	MSM_BACKEND_DAI_TERTIARY_MI2S_RX,
 	MSM_FRONTEND_DAI_MULTIMEDIA8, 1, 0, msm_routing_get_audio_mixer,
 	msm_routing_put_audio_mixer),
+#ifdef CONFIG_VENDOR_LEECO
+	SOC_DOUBLE_EXT("MultiMedia9", SND_SOC_NOPM,
+	MSM_BACKEND_DAI_TERTIARY_MI2S_RX,
+	MSM_FRONTEND_DAI_MULTIMEDIA9, 1, 0, msm_routing_get_audio_mixer,
+	msm_routing_put_audio_mixer),
+#endif
 	SOC_DOUBLE_EXT("MultiMedia10", SND_SOC_NOPM,
 	MSM_BACKEND_DAI_TERTIARY_MI2S_RX,
 	MSM_FRONTEND_DAI_MULTIMEDIA10, 1, 0, msm_routing_get_audio_mixer,
@@ -11211,6 +11305,32 @@ static const struct snd_kcontrol_new aanc_slim_0_rx_mux[] = {
 		msm_routing_slim_0_rx_aanc_mux_put)
 };
 
+#ifdef CONFIG_VENDOR_LEECO
+static const struct snd_kcontrol_new afe_pri_mi2s_vol_mixer_controls[] = {
+	SOC_SINGLE_EXT_TLV("PRI_MI2S_RX Volume", SND_SOC_NOPM, 0,
+	INT_RX_VOL_GAIN, 0, msm_routing_get_afe_pri_mi2s_vol_mixer,
+	msm_routing_set_afe_pri_mi2s_vol_mixer, afe_mi2s_vol_gain),
+};
+
+static const struct snd_kcontrol_new afe_sec_mi2s_vol_mixer_controls[] = {
+	SOC_SINGLE_EXT_TLV("SEC_MI2S_RX Volume", SND_SOC_NOPM, 0,
+	INT_RX_VOL_GAIN, 0, msm_routing_get_afe_sec_mi2s_vol_mixer,
+	msm_routing_set_afe_sec_mi2s_vol_mixer, afe_mi2s_vol_gain),
+};
+
+static const struct snd_kcontrol_new afe_tert_mi2s_vol_mixer_controls[] = {
+	SOC_SINGLE_EXT_TLV("TERT_MI2S_RX Volume", SND_SOC_NOPM, 0,
+	INT_RX_VOL_GAIN, 0, msm_routing_get_afe_tert_mi2s_vol_mixer,
+	msm_routing_set_afe_tert_mi2s_vol_mixer, afe_mi2s_vol_gain),
+};
+
+static const struct snd_kcontrol_new afe_quat_mi2s_vol_mixer_controls[] = {
+	SOC_SINGLE_EXT_TLV("QUAT_MI2S_RX Volume", SND_SOC_NOPM, 0,
+	INT_RX_VOL_GAIN, 0, msm_routing_get_afe_quat_mi2s_vol_mixer,
+	msm_routing_set_afe_quat_mi2s_vol_mixer, afe_mi2s_vol_gain),
+};
+#endif
+
 static int msm_routing_get_stereo_to_custom_stereo_control(
 					struct snd_kcontrol *kcontrol,
 					struct snd_ctl_elem_value *ucontrol)
@@ -13266,8 +13386,14 @@ static const struct snd_soc_dapm_route intercon[] = {
 	{"TERT_MI2S_RX Audio Mixer", "MultiMedia3", "MM_DL3"},
 	{"TERT_MI2S_RX Audio Mixer", "MultiMedia4", "MM_DL4"},
 	{"TERT_MI2S_RX Audio Mixer", "MultiMedia5", "MM_DL5"},
+#ifdef CONFIG_VENDOR_LEECO
+	{"TERT_MI2S_RX Audio Mixer", "MultiMedia6", "MM_DL6"},
+#endif
 	{"TERT_MI2S_RX Audio Mixer", "MultiMedia7", "MM_DL7"},
 	{"TERT_MI2S_RX Audio Mixer", "MultiMedia8", "MM_DL8"},
+#ifdef CONFIG_VENDOR_LEECO
+	{"TERT_MI2S_RX Audio Mixer", "MultiMedia9", "MM_DL9"},
+#endif
 	{"TERT_MI2S_RX Audio Mixer", "MultiMedia10", "MM_DL10"},
 	{"TERT_MI2S_RX Audio Mixer", "MultiMedia11", "MM_DL11"},
 	{"TERT_MI2S_RX Audio Mixer", "MultiMedia12", "MM_DL12"},
@@ -13282,8 +13408,14 @@ static const struct snd_soc_dapm_route intercon[] = {
 	{"SEC_MI2S_RX Audio Mixer", "MultiMedia3", "MM_DL3"},
 	{"SEC_MI2S_RX Audio Mixer", "MultiMedia4", "MM_DL4"},
 	{"SEC_MI2S_RX Audio Mixer", "MultiMedia5", "MM_DL5"},
+#ifdef CONFIG_VENDOR_LEECO
+	{"SEC_MI2S_RX Audio Mixer", "MultiMedia6", "MM_DL6"},
+#endif
 	{"SEC_MI2S_RX Audio Mixer", "MultiMedia7", "MM_DL7"},
 	{"SEC_MI2S_RX Audio Mixer", "MultiMedia8", "MM_DL8"},
+#ifdef CONFIG_VENDOR_LEECO
+	{"SEC_MI2S_RX Audio Mixer", "MultiMedia9", "MM_DL9"},
+#endif
 	{"SEC_MI2S_RX Audio Mixer", "MultiMedia10", "MM_DL10"},
 	{"SEC_MI2S_RX Audio Mixer", "MultiMedia11", "MM_DL11"},
 	{"SEC_MI2S_RX Audio Mixer", "MultiMedia12", "MM_DL12"},
@@ -14977,6 +15109,12 @@ static const struct snd_soc_dapm_route intercon[] = {
 	{"SLIMBUS_0_RX Port Mixer", "SEC_MI2S_TX", "SEC_MI2S_TX"},
 	{"SLIMBUS_0_RX Port Mixer", "TERT_MI2S_TX", "TERT_MI2S_TX"},
 	{"SLIMBUS_0_RX Port Mixer", "QUAT_MI2S_TX", "QUAT_MI2S_TX"},
+#ifdef CONFIG_VENDOR_LEECO
+	{"SLIMBUS_0_RX Port Mixer", "PRI_MI2S_RX", "PRI_MI2S_RX"},
+	{"SLIMBUS_0_RX Port Mixer", "SEC_MI2S_RX", "SEC_MI2S_RX"},
+	{"SLIMBUS_0_RX Port Mixer", "TERT_MI2S_RX", "TERT_MI2S_RX"},
+	{"SLIMBUS_0_RX Port Mixer", "QUAT_MI2S_RX", "QUAT_MI2S_RX"},
+#endif
 	{"SLIMBUS_0_RX Port Mixer", "INTERNAL_BT_SCO_TX", "INT_BT_SCO_TX"},
 	{"SLIMBUS_0_RX", NULL, "SLIMBUS_0_RX Port Mixer"},
 	{"AFE_PCM_RX Port Mixer", "INTERNAL_FM_TX", "INT_FM_TX"},
@@ -15180,7 +15318,9 @@ static const struct snd_soc_dapm_route intercon[] = {
 	{"PRI_MI2S_TX", NULL, "BE_IN"},
 	{"TERT_MI2S_TX", NULL, "BE_IN"},
 	{"SEC_MI2S_TX", NULL, "BE_IN"},
+#ifndef CONFIG_VENDOR_LEECO
 	{"SENARY_MI2S_TX", NULL, "BE_IN" },
+#endif
 	{"SLIMBUS_0_TX", NULL, "BE_IN" },
 	{"SLIMBUS_1_TX", NULL, "BE_IN" },
 	{"SLIMBUS_2_TX", NULL, "BE_IN" },
@@ -15700,6 +15840,24 @@ static int msm_routing_probe(struct snd_soc_platform *platform)
 
 	snd_soc_add_platform_controls(platform, channel_mixer_controls,
 				ARRAY_SIZE(channel_mixer_controls));
+
+#ifdef CONFIG_VENDOR_LEECO
+	snd_soc_add_platform_controls(platform,
+			afe_pri_mi2s_vol_mixer_controls,
+			ARRAY_SIZE(afe_pri_mi2s_vol_mixer_controls));
+
+	snd_soc_add_platform_controls(platform,
+			afe_sec_mi2s_vol_mixer_controls,
+			ARRAY_SIZE(afe_sec_mi2s_vol_mixer_controls));
+
+	snd_soc_add_platform_controls(platform,
+			afe_tert_mi2s_vol_mixer_controls,
+			ARRAY_SIZE(afe_tert_mi2s_vol_mixer_controls));
+
+	snd_soc_add_platform_controls(platform,
+			afe_quat_mi2s_vol_mixer_controls,
+			ARRAY_SIZE(afe_quat_mi2s_vol_mixer_controls));
+#endif
 
 	msm_qti_pp_add_controls(platform);
 
